@@ -43,7 +43,6 @@ def convert_block_format(block):
     positions = []
     format = block.block_type[block.rotation % len(block.block_type)]
 
-    #print(format)
     for i, line in enumerate(format):
         row = list(line)
         for j, column in enumerate(row):
@@ -68,6 +67,27 @@ def valid_space(block, grid):
                 return False
     return True
 
+def clear_rows(grid, occupied_positions):
+
+    counter = 0
+    for i in range(len(grid) - 1, -1, -1):
+        row = grid[i]
+        if (0, 0, 0) not in row:
+            counter += 1
+            index = i
+            for j in range(len(row)):
+                try:
+                    del occupied_positions[(j, i)]
+                except:
+                    continue
+
+    if counter > 0:
+        for key in sorted(list(occupied_positions), key=lambda x: x[1])[::-1]:
+            x, y = key
+            if y < index:
+                newKey = (x, y + counter)
+                occupied_positions[newKey] = occupied_positions.pop(key)
+    return counter
 
 def draw_window(grid,):
     window.fill((18, 57, 107))
@@ -163,6 +183,7 @@ def main():
             current_block = next_block
             next_block = block.Block.get_block()
             change_block = False
+            clear_rows(grid, occupied_positions)
 
         draw_window(grid)
         pg.display.update()

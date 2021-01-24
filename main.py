@@ -89,6 +89,22 @@ def clear_rows(grid, occupied_positions):
                 occupied_positions[newKey] = occupied_positions.pop(key)
     return counter
 
+def draw_next_block(block):
+    font = pg.font.SysFont("Arial", 28)
+    label = font.render('Next Block: ', 1, (255, 255, 255))
+
+    x = top_left_x + space_to_play_w + 60
+    y = top_left_y + space_to_play_h/2 - 100
+    format = block.block_type[block.rotation % len(block.block_type)]
+
+    for i, line in enumerate(format):
+        row = list(line)
+        for j, column, in enumerate(row):
+            if column == '1':
+                pg.draw.rect(window, block.color, (x + j*basic_block_size, y + i*basic_block_size, basic_block_size, basic_block_size), border_radius=10)
+
+    window.blit(label, (x + 10, y - 35))
+
 def draw_window(grid,):
     window.fill((18, 57, 107))
     font = pg.font.SysFont("Arial", 54)
@@ -186,6 +202,7 @@ def main():
             clear_rows(grid, occupied_positions)
 
         draw_window(grid)
+        draw_next_block(next_block)
         pg.display.update()
 
         if check_lost(occupied_positions):

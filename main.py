@@ -67,6 +67,7 @@ def valid_space(block, grid):
                 return False
     return True
 
+
 def clear_rows(grid, occupied_positions):
 
     counter = 0
@@ -89,9 +90,10 @@ def clear_rows(grid, occupied_positions):
                 occupied_positions[newKey] = occupied_positions.pop(key)
     return counter
 
+
 def draw_next_block(block):
     font = pg.font.SysFont("Arial", 28)
-    label = font.render('Next Block: ', 1, (255, 255, 255))
+    label = font.render('Next Block: ', True, (255, 255, 255))
 
     x = top_left_x + space_to_play_w + 60
     y = top_left_y + space_to_play_h/2 - 100
@@ -105,11 +107,20 @@ def draw_next_block(block):
 
     window.blit(label, (x + 10, y - 35))
 
-def draw_window(grid,):
+
+def draw_window(grid, score=0):
     window.fill((18, 57, 107))
     font = pg.font.SysFont("Arial", 54)
     label = font.render("TETRIS", True, (0, 255, 0))
     window.blit(label, (top_left_x + space_to_play_w / 2 - (label.get_width() / 2), 30))
+
+    font = pg.font.SysFont("Arial", 28)
+    label = font.render('Score: ' + str(score), True, (255, 255, 255))
+
+    x = top_left_x + space_to_play_w + 50
+    y = top_left_y + space_to_play_h / 2 - 100
+
+    window.blit(label, (x + 20, y + 170))
 
     for i in range(len(grid)):
         for j in range(len(grid[i])):
@@ -137,9 +148,12 @@ def main():
     pg_clock = pg.time.Clock()
     fall_time = 0
     pause = False
+    score = 0
+    last_score = score
+    fall_speed = 0.3
 
     while game_on:
-        fall_speed = 0.3
+
         grid = create_grid(occupied_positions)
         fall_time += pg_clock.get_rawtime()
         pg_clock.tick()
@@ -150,6 +164,10 @@ def main():
             if not(valid_space(current_block, grid)) and current_block.y > 0:
                 current_block.y -= 1
                 change_block = True
+
+        if score > last_score:
+            last_score = score
+            fall_speed -= 0.01
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -177,12 +195,14 @@ def main():
                         current_block.rotation -= 1
                 if event.key == pg.K_p:
                     pause = True
-
+                if event.key == pg.K_r:
+                    # reset
+                    game_on = False
 
         while(pause):
-            for ev in pg.event.get():
-                if ev.type == pg.KEYDOWN:
-                    if ev.key == pg.K_p:
+            for event in pg.event.get():
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_p:
                         pause = False
 
         block_pos = convert_block_format(current_block)
@@ -199,14 +219,16 @@ def main():
             current_block = next_block
             next_block = block.Block.get_block()
             change_block = False
-            clear_rows(grid, occupied_positions)
+            score += clear_rows(grid, occupied_positions) * 10
 
-        draw_window(grid)
+        draw_window(grid, score)
         draw_next_block(next_block)
         pg.display.update()
 
         if check_lost(occupied_positions):
-            pg.time.delay(300)
+            draw_mid_text("You Lost! Your score: " + str(score), 40, (255, 0, 0))
+            pg.display.update()
+            pg.time.delay(1400)
             game_on = False
 
 
